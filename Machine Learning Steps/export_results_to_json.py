@@ -1,0 +1,348 @@
+"""
+Export ML project results and process documentation to JSON format for React dashboard
+"""
+import pandas as pd
+import json
+import os
+from datetime import datetime
+
+# Get the directory where the script is located
+script_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(script_dir)
+
+# Load model comparison results from parent directory
+csv_path = os.path.join(script_dir, 'all_models_precision_comparison.csv')
+# If not found in script dir, try parent dir
+if not os.path.exists(csv_path):
+    csv_path = os.path.join(parent_dir, 'all_models_precision_comparison.csv')
+
+comparison_df = pd.read_csv(csv_path)
+print(f"✅ Loaded comparison data from: {csv_path}")
+
+# Create comprehensive project documentation
+project_data = {
+    "project": {
+        "title": "ML Model Comparison - Heart Disease Prediction",
+        "description": "Aggressive precision-focused hyperparameter search comparing 5 machine learning models",
+        "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "dataset": {
+            "name": "Heart Disease Dataset",
+            "original_samples": 294,
+            "features": 11,
+            "target": "Heart Disease (num)",
+            "class_distribution": {
+                "class_0": 188,
+                "class_1": 106,
+                "imbalance_ratio": 0.5637
+            },
+            "train_test_split": {
+                "train": 235,
+                "test": 59,
+                "ratio": "80/20 stratified"
+            }
+        }
+    },
+    
+    "data_preparation": {
+        "steps": [
+            {
+                "step": 1,
+                "title": "Data Loading",
+                "description": "Load heart disease dataset from CSV (latin1 encoding)",
+                "input": "data.csv",
+                "output": "294 rows × 13 columns"
+            },
+            {
+                "step": 2,
+                "title": "Column Normalization",
+                "description": "Strip whitespace, normalize column names for consistency",
+                "changes": "Column names cleaned"
+            },
+            {
+                "step": 3,
+                "title": "Missing Value Handling",
+                "description": "Normalize missing tokens (?,-,NA,N/A,none,null,nan) to NaN",
+                "missing_tokens": ["?", "-", "NA", "N/A", "na", "n/a", "none", "null", "nan"]
+            },
+            {
+                "step": 4,
+                "title": "Data Type Coercion",
+                "description": "Coerce numeric strings (remove commas/percent signs), parse dates, convert booleans",
+                "methods": ["numeric coercion", "datetime parsing", "boolean conversion"]
+            },
+            {
+                "step": 5,
+                "title": "Column Dropping",
+                "description": "Drop columns with >90% missing and constant columns",
+                "dropped_columns": ["ca", "thal"],
+                "reason": ">90% missing values"
+            },
+            {
+                "step": 6,
+                "title": "Final Validation",
+                "description": "Ensure target column present, coerce to integer, drop rows with missing target",
+                "output": "cleaned_data.csv (294 rows × 12 columns)"
+            }
+        ],
+        "missing_percentages": {
+            "slope": 64.63,
+            "chol": 7.82,
+            "fbs": 2.72,
+            "other_columns": "<1%"
+        },
+        "features_after_cleaning": [
+            "age", "sex", "cp", "trestbps", "chol", "fbs", 
+            "restecg", "thalach", "exang", "oldpeak", "slope"
+        ]
+    },
+
+    "exploratory_data_analysis": {
+        "steps": [
+            {
+                "title": "Target Distribution",
+                "description": "Visualize class balance - dataset is imbalanced with 36% positive class",
+                "plot": "plot_target_distribution.png"
+            },
+            {
+                "title": "Feature Distributions",
+                "description": "Histograms showing distribution of numeric features",
+                "plot": "plot_numeric_histograms.png"
+            },
+            {
+                "title": "Feature Correlations",
+                "description": "Correlation heatmap to identify multicollinearity",
+                "plot": "plot_correlation_heatmap.png"
+            },
+            {
+                "title": "Outlier Detection",
+                "description": "Boxplots to identify potential outliers",
+                "plot": "plot_boxplots.png"
+            }
+        ]
+    },
+
+    "preprocessing_pipeline": {
+        "description": "Scikit-learn ColumnTransformer with separate numeric and categorical branches",
+        "numeric_pipeline": [
+            "SimpleImputer (strategy='median')",
+            "StandardScaler"
+        ],
+        "categorical_pipeline": [
+            "SimpleImputer (strategy='most_frequent')",
+            "OneHotEncoder (sparse_output=False)"
+        ],
+        "train_test_split": "80/20 stratified by target"
+    },
+
+    "model_training": {
+        "description": "Initial multi-model training with hyperparameter tuning",
+        "models_trained": [
+            "LogisticRegression",
+            "RandomForest (n_estimators=200)",
+            "GradientBoosting (n_estimators=200)",
+            "ExtraTrees (n_estimators=200)",
+            "AdaBoost (n_estimators=200)"
+        ],
+        "evaluation_metrics": ["accuracy", "precision", "recall", "f1", "roc_auc"],
+        "plots_generated": ["roc_curves_models.png", "pr_curves_models.png"]
+    },
+
+    "aggressive_search": {
+        "description": "Aggressive precision-focused RandomizedSearchCV hyperparameter tuning",
+        "objective": "Find best model achieving precision ≥ 0.9",
+        "search_strategy": "RandomizedSearchCV with precision scoring",
+        "cross_validation": "StratifiedKFold (5 folds)",
+        "iterations_per_model": {
+            "LogisticRegression": 50,
+            "RandomForest": 80,
+            "GradientBoosting": 80,
+            "ExtraTrees": 80,
+            "AdaBoost": 50
+        },
+        "unavailable_models": ["XGBoost", "LightGBM", "CatBoost"],
+        "results_file": "all_models_precision_comparison.csv"
+    },
+
+    "model_comparison": {
+        "description": "Detailed comparison of all 5 tuned models",
+        "models": [
+            {
+                "rank": 1,
+                "name": "LogisticRegression",
+                "accuracy": 0.8983,
+                "precision": 0.8571,
+                "recall": 0.8571,
+                "f1": 0.8571,
+                "roc_auc": 0.8960,
+                "strengths": ["Best precision", "Balanced precision/recall", "Best accuracy"],
+                "weaknesses": ["Below 0.9 precision target"],
+                "recommendation": "Primary candidate - use with threshold tuning for precision ≥ 0.9"
+            },
+            {
+                "rank": 2,
+                "name": "RandomForest",
+                "accuracy": 0.8814,
+                "precision": 0.8500,
+                "recall": 0.8095,
+                "f1": 0.8293,
+                "roc_auc": 0.9236,
+                "strengths": ["Good precision", "Good accuracy", "Strong ROC-AUC"],
+                "weaknesses": ["Lower recall than LogisticRegression"],
+                "recommendation": "Strong second choice with balanced metrics"
+            },
+            {
+                "rank": 3,
+                "name": "AdaBoost",
+                "accuracy": 0.8475,
+                "precision": 0.8000,
+                "recall": 0.7619,
+                "f1": 0.7805,
+                "roc_auc": 0.8872,
+                "strengths": ["Moderate performance", "Good discriminative power"],
+                "weaknesses": ["Lower precision than top 2 models"],
+                "recommendation": "Acceptable third option"
+            },
+            {
+                "rank": 4,
+                "name": "GradientBoosting",
+                "accuracy": 0.7966,
+                "precision": 0.7647,
+                "recall": 0.6190,
+                "f1": 0.6842,
+                "roc_auc": 0.8684,
+                "strengths": ["ROC-AUC still competitive"],
+                "weaknesses": ["Lowest recall", "Lower precision"],
+                "recommendation": "Not recommended for this use case"
+            },
+            {
+                "rank": 5,
+                "name": "ExtraTrees",
+                "accuracy": 0.7966,
+                "precision": 0.7647,
+                "recall": 0.6190,
+                "f1": 0.6842,
+                "roc_auc": 0.9424,
+                "strengths": ["Highest ROC-AUC (0.9424)"],
+                "weaknesses": ["Lower precision than top 2 models"],
+                "recommendation": "Consider for applications prioritizing discrimination over precision"
+            }
+        ],
+        "overall_winner": "LogisticRegression",
+        "target_met": False,
+        "target_precision": 0.9
+    },
+
+    "results_summary": {
+        "best_precision_model": "LogisticRegression",
+        "best_precision_score": 0.8571,
+        "best_recall_score": 0.8571,
+        "best_f1_score": 0.8571,
+        "best_roc_auc_model": "ExtraTrees",
+        "best_roc_auc_score": 0.9424,
+        "models_meeting_target": 0,
+        "precision_target": 0.9,
+        "next_steps": [
+            "Apply threshold tuning to LogisticRegression",
+            "Find probability threshold maximizing recall with precision ≥ 0.9",
+            "Deploy best-tuned model for production"
+        ]
+    },
+
+    "unsupervised_analysis": {
+        "description": "Unsupervised learning to understand data structure",
+        "methods": [
+            {
+                "method": "PCA",
+                "components": 2,
+                "purpose": "2D projection of feature space",
+                "plot": "unsup_pca2.png"
+            },
+            {
+                "method": "KMeans",
+                "k_range": "2-6",
+                "scoring": "Silhouette score",
+                "purpose": "Find natural clustering in data",
+                "plot": "unsup_kmeans_pca.png"
+            },
+            {
+                "method": "DBSCAN",
+                "eps": 0.5,
+                "min_samples": 5,
+                "purpose": "Density-based clustering"
+            }
+        ]
+    },
+
+    "recommendations": {
+        "production_model": "LogisticRegression",
+        "reason": "Best precision (0.8571) with balanced recall (0.8571) and highest accuracy (0.8983)",
+        "precision_target_strategy": "Apply threshold tuning to achieve precision ≥ 0.9",
+        "alternative_models": [
+            {
+                "name": "RandomForest",
+                "use_case": "When slightly lower precision acceptable but better generalization desired"
+            },
+            {
+                "name": "ExtraTrees",
+                "use_case": "When discriminative power (ROC-AUC) is most important metric"
+            }
+        ],
+        "model_files": {
+            "LogisticRegression": "tuned_precision_LogisticRegression.joblib",
+            "RandomForest": "tuned_precision_RandomForest.joblib",
+            "AdaBoost": "tuned_precision_AdaBoost.joblib",
+            "GradientBoosting": "tuned_precision_GradientBoosting.joblib",
+            "ExtraTrees": "tuned_precision_ExtraTrees.joblib"
+        }
+    },
+
+    "files_generated": {
+        "cleaned_data": "cleaned_data.csv",
+        "model_comparison": "all_models_precision_comparison.csv",
+        "model_artifacts": [
+            "tuned_precision_LogisticRegression.joblib",
+            "tuned_precision_RandomForest.joblib",
+            "tuned_precision_GradientBoosting.joblib",
+            "tuned_precision_ExtraTrees.joblib",
+            "tuned_precision_AdaBoost.joblib"
+        ],
+        "plots": [
+            "plot_target_distribution.png",
+            "plot_numeric_histograms.png",
+            "plot_correlation_heatmap.png",
+            "plot_boxplots.png",
+            "roc_curves_models.png",
+            "pr_curves_models.png",
+            "roc_comparison_all_tuned.png",
+            "model_comparison_final.png",
+            "unsup_pca2.png",
+            "unsup_kmeans_pca.png"
+        ]
+    }
+}
+
+# Convert comparison DataFrame to list of dicts for JSON
+# Convert numpy types to native Python types for JSON serialization
+comparison_list = []
+for record in comparison_df.sort_values('precision', ascending=False).to_dict('records'):
+    converted = {}
+    for k, v in record.items():
+        if pd.isna(v):
+            converted[k] = None
+        elif isinstance(v, (pd.Int64Dtype, int)):
+            converted[k] = int(v)
+        elif isinstance(v, float):
+            converted[k] = float(v)
+        else:
+            converted[k] = str(v)
+    comparison_list.append(converted)
+
+project_data['model_comparison']['detailed_results'] = comparison_list
+
+# Save to JSON in the script directory
+output_file = os.path.join(script_dir, 'ml_project_results.json')
+with open(output_file, 'w', encoding='utf-8') as f:
+    json.dump(project_data, f, indent=2, ensure_ascii=False)
+
+print(f"✅ Results exported to {output_file}")
+print(f"   File size: {len(json.dumps(project_data, indent=2)) / 1024:.1f} KB")

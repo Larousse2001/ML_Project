@@ -1,0 +1,310 @@
+{
+  "project": {
+    "title": "Complete ML Pipeline - Heart Disease Prediction",
+    "description": "End-to-end machine learning pipeline with data cleaning, EDA, feature engineering, SMOTE balancing, clustering, and precision-focused model optimization",
+    "date": "2025-11-30 20:04:26",
+    "goal": "Achieve precision ≥ 0.9 for heart disease prediction",
+    "dataset": {
+      "name": "Heart Disease Dataset",
+      "original_samples": 294,
+      "features": 13,
+      "target": "Heart Disease (num)",
+      "class_distribution": {
+        "class_0": 188,
+        "class_1": 106
+      },
+      "imbalance_ratio": 0.5638297872340425,
+      "train_test_split": {
+        "train": 300,
+        "test": 76,
+        "ratio": "80/20 stratified"
+      }
+    }
+  },
+  "data_preparation": {
+    "steps": [
+      {
+        "step": 1,
+        "title": "Data Loading",
+        "description": "Load heart disease dataset from CSV (latin1 encoding)",
+        "input": "data.csv",
+        "output": "294 rows × 14 columns"
+      },
+      {
+        "step": 2,
+        "title": "Column Normalization",
+        "description": "Strip whitespace from column names for consistency",
+        "changes": "Column names cleaned"
+      },
+      {
+        "step": 3,
+        "title": "Missing Value Handling",
+        "description": "Normalize missing tokens (?,-,NA,N/A,none,null,nan) to NaN",
+        "missing_tokens": [
+          "?"
+        ]
+      },
+      {
+        "step": 4,
+        "title": "Data Type Coercion",
+        "description": "Coerce numeric strings (remove commas/percent signs), parse dates, convert booleans",
+        "methods": [
+          "numeric coercion",
+          "datetime parsing",
+          "boolean conversion"
+        ]
+      },
+      {
+        "step": 5,
+        "title": "Column Dropping",
+        "description": "Drop columns with >90% missing and constant columns",
+        "dropped_columns": [
+          "None"
+        ],
+        "reason": ">90% missing values or constant"
+      },
+      {
+        "step": 6,
+        "title": "Duplicate Removal",
+        "description": "Remove 0 duplicate rows",
+        "removed": 0
+      },
+      {
+        "step": 7,
+        "title": "Target Validation",
+        "description": "Ensure target column present, coerce to integer, drop rows with missing target",
+        "output": "cleaned_data.csv (294 rows × 14 columns)"
+      }
+    ],
+    "missing_percentages": {
+      "ca": 98.98,
+      "thal": 90.48,
+      "slope": 64.63,
+      "chol": 7.82,
+      "fbs": 2.72,
+      "trestbps": 0.34,
+      "thalach": 0.34,
+      "exang": 0.34,
+      "restecg": 0.34,
+      "age": 0.0
+    },
+    "features_after_cleaning": [
+      "age",
+      "sex",
+      "cp",
+      "trestbps",
+      "chol",
+      "fbs",
+      "restecg",
+      "thalach",
+      "exang",
+      "oldpeak",
+      "slope",
+      "ca",
+      "thal"
+    ]
+  },
+  "exploratory_data_analysis": {
+    "steps": [
+      {
+        "title": "Target Distribution",
+        "description": "Class balance analysis - imbalance ratio: 0.564",
+        "plot": "plot_target_distribution.png"
+      },
+      {
+        "title": "Feature Distributions",
+        "description": "Histograms showing distribution of numeric features",
+        "plot": "plot_numeric_histograms.png"
+      },
+      {
+        "title": "Feature Correlations",
+        "description": "Correlation heatmap to identify multicollinearity",
+        "plot": "plot_correlation_heatmap.png"
+      },
+      {
+        "title": "Outlier Detection",
+        "description": "Boxplots to identify potential outliers",
+        "plot": "plot_boxplots.png"
+      }
+    ]
+  },
+  "feature_engineering": {
+    "steps": [
+      {
+        "title": "Feature Scaling",
+        "description": "StandardScaler normalization (mean=0, std=1)",
+        "method": "StandardScaler"
+      },
+      {
+        "title": "Feature Selection",
+        "description": "Remove highly correlated features (threshold=0.95)",
+        "removed_features": [
+          "None"
+        ],
+        "features_remaining": 13
+      },
+      {
+        "title": "Missing Value Imputation",
+        "description": "Median imputation for remaining missing values",
+        "method": "SimpleImputer(strategy='median')"
+      }
+    ]
+  },
+  "class_balancing": {
+    "method": "SMOTE",
+    "description": "Synthetic Minority Over-sampling Technique",
+    "before": {
+      "class_0": 188,
+      "class_1": 106
+    },
+    "after": {
+      "class_0": 188,
+      "class_1": 188
+    },
+    "samples_added": 82,
+    "plot": "plot_smote_balancing.png"
+  },
+  "unsupervised_learning": {
+    "clustering": {
+      "method": "K-Means",
+      "optimal_k": 2,
+      "silhouette_score": 0.21805550357664485,
+      "cluster_distribution": {
+        "cluster_0": 198,
+        "cluster_1": 96
+      },
+      "plots": [
+        "plot_clustering_metrics.png",
+        "plot_clustering_pca.png"
+      ]
+    },
+    "dimensionality_reduction": {
+      "method": "PCA",
+      "components": 2,
+      "explained_variance": 0.3794995519321107,
+      "purpose": "2D visualization of feature space"
+    }
+  },
+  "model_training": {
+    "initial_models": {
+      "description": "Baseline model comparison",
+      "models_trained": [
+        "LogisticRegression",
+        "RandomForest",
+        "GradientBoosting",
+        "ExtraTrees",
+        "AdaBoost"
+      ],
+      "results_file": "model_comparison_initial.csv",
+      "plot": "plot_roc_curves_initial.png"
+    },
+    "hyperparameter_tuning": {
+      "description": "Aggressive precision-focused RandomizedSearchCV",
+      "objective": "Maximize precision (target ≥ 0.9)",
+      "method": "RandomizedSearchCV",
+      "cross_validation": "StratifiedKFold (5 folds)",
+      "iterations_per_model": 80,
+      "scoring": "precision",
+      "results_file": "all_models_precision_comparison.csv"
+    }
+  },
+  "model_comparison": {
+    "description": "Comparison of all tuned models",
+    "models": [
+      {
+        "model": "ExtraTrees",
+        "accuracy": 0.8421052631578947,
+        "precision": 0.90625,
+        "recall": 0.7631578947368421,
+        "f1": 0.8285714285714286,
+        "roc_auc": 0.9390581717451524
+      },
+      {
+        "model": "AdaBoost",
+        "accuracy": 0.8289473684210527,
+        "precision": 0.9032258064516128,
+        "recall": 0.7368421052631579,
+        "f1": 0.8115942028985508,
+        "roc_auc": 0.9013157894736844
+      },
+      {
+        "model": "RandomForest",
+        "accuracy": 0.8552631578947368,
+        "precision": 0.8857142857142857,
+        "recall": 0.8157894736842105,
+        "f1": 0.8493150684931506,
+        "roc_auc": 0.912742382271468
+      },
+      {
+        "model": "LogisticRegression",
+        "accuracy": 0.8421052631578947,
+        "precision": 0.8823529411764706,
+        "recall": 0.7894736842105263,
+        "f1": 0.8333333333333334,
+        "roc_auc": 0.8774238227146814
+      },
+      {
+        "model": "GradientBoosting",
+        "accuracy": 0.8289473684210527,
+        "precision": 0.8571428571428571,
+        "recall": 0.7894736842105263,
+        "f1": 0.821917808219178,
+        "roc_auc": 0.9182825484764544
+      }
+    ],
+    "best_model": {
+      "name": "ExtraTrees",
+      "accuracy": 0.8421052631578947,
+      "precision": 0.90625,
+      "recall": 0.7631578947368421,
+      "f1": 0.8285714285714286,
+      "roc_auc": 0.9390581717451524
+    },
+    "target_met": true,
+    "precision_target": 0.9,
+    "plot": "model_comparison_final.png"
+  },
+  "recommendations": {
+    "production_model": "ExtraTrees",
+    "reason": "Best precision (0.9062) among all tuned models",
+    "next_steps": [
+      "Deploy best model for production use",
+      "Monitor model performance on new data",
+      "Consider threshold tuning if precision ≥ 0.9 is strictly required",
+      "Implement model retraining pipeline"
+    ],
+    "model_files": {
+      "LogisticRegression": "model_tuned_LogisticRegression.joblib",
+      "RandomForest": "model_tuned_RandomForest.joblib",
+      "GradientBoosting": "model_tuned_GradientBoosting.joblib",
+      "ExtraTrees": "model_tuned_ExtraTrees.joblib",
+      "AdaBoost": "model_tuned_AdaBoost.joblib"
+    }
+  },
+  "files_generated": {
+    "cleaned_data": "cleaned_data.csv",
+    "model_comparisons": [
+      "model_comparison_initial.csv",
+      "all_models_precision_comparison.csv"
+    ],
+    "model_artifacts": [
+      "model_tuned_LogisticRegression.joblib",
+      "model_tuned_RandomForest.joblib",
+      "model_tuned_GradientBoosting.joblib",
+      "model_tuned_ExtraTrees.joblib",
+      "model_tuned_AdaBoost.joblib"
+    ],
+    "plots": [
+      "plot_missing_values.png",
+      "plot_target_distribution.png",
+      "plot_numeric_histograms.png",
+      "plot_correlation_heatmap.png",
+      "plot_boxplots.png",
+      "plot_smote_balancing.png",
+      "plot_clustering_metrics.png",
+      "plot_clustering_pca.png",
+      "plot_roc_curves_initial.png",
+      "model_comparison_final.png"
+    ]
+  }
+}
